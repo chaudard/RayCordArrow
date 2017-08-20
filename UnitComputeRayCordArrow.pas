@@ -35,9 +35,35 @@ implementation
 
 {$R *.dfm}
 
+uses
+  circleUnit; //uses methods in Circle.dll
+
 const
-  MUSTFLOATUSE: string = 'you must use a float value.';
+  MUSTPOSITIVEFLOATUSEORCHANGECOMMA: string = 'you must use a float (>=0) value, or change the comma.';
   NOTFOUND: string = 'not found.';
+
+function TransfoDoubleToStr(const value: double): string;
+begin
+  try
+    result := formatfloat('#.##', value);
+  except on E: exception do
+    result := NOTFOUND;
+  end;
+end;
+
+function getDoublePositiveNonNullValue(aText: TCaption; out value: double):  boolean;
+begin
+  value := 0;
+  try
+    value := strtofloat(aText);
+    if value > 0 then
+      result := true;
+  except on E: exception do
+    begin
+      result := false;
+    end;
+  end;
+end;
 
 procedure TmainApplicationForm.btComputeRayClick(Sender: TObject);
 var
@@ -45,35 +71,16 @@ var
   value: string;
 begin
   edRay.Text := NOTFOUND;
-
-  try
-  C := strtofloat(edCord.Text);
-  except on E: exception do
-    begin
-      edCord.Text := MUSTFLOATUSE;
-      exit;
-    end;
+  if (not getDoublePositiveNonNullValue(edCord.Text, C))
+  or (not getDoublePositiveNonNullValue(edArrow.Text, F))
+  then
+  begin
+    showMessage(MUSTPOSITIVEFLOATUSEORCHANGECOMMA);
+    exit;
   end;
-
-  try
-  F := strtofloat(edArrow.Text);
-  except on E: exception do
-    begin
-      edArrow.Text := MUSTFLOATUSE;
-      exit;
-    end;
-  end;
-
-  if F > 0 then
-    begin
-      R := (F/2) + ((C*C)/(8*F));
-      try
-      value := floattostr(R);
-      except on E: exception do
-        value := NOTFOUND;
-      end;
-      edRay.Text := value;
-    end;
+  R := ComputeRay(C, F);  // dll method
+  value := TransfoDoubleToStr(R);
+  edRay.Text := value;
 end;
 
 procedure TmainApplicationForm.btComputeArrowClick(Sender: TObject);
@@ -82,35 +89,16 @@ var
   value: string;
 begin
   edArrow.Text := NOTFOUND;
-
-  try
-  R := strtofloat(edRay.Text);
-  except on E: exception do
-    begin
-      edRay.Text := MUSTFLOATUSE;
-      exit;
-    end;
+  if (not getDoublePositiveNonNullValue(edRay.Text, R))
+  or (not getDoublePositiveNonNullValue(edCord.Text, C))
+  then
+  begin
+    showMessage(MUSTPOSITIVEFLOATUSEORCHANGECOMMA);
+    exit;
   end;
-
-  try
-  C := strtofloat(edCord.Text);
-  except on E: exception do
-    begin
-      edCord.Text := MUSTFLOATUSE;
-      exit;
-    end;
-  end;
-
-  if R > 0 then
-    begin
-      F := R * (1 - sqrt(1 - (C*C)/(4*R*R)));
-      try
-      value := floattostr(F);
-      except on E: exception do
-        value := NOTFOUND;
-      end;
-      edArrow.Text := value;
-    end;
+  F := ComputeArrow(C, R); // dll method
+  value := TransfoDoubleToStr(F);
+  edArrow.Text := value;
 end;
 
 procedure TmainApplicationForm.btComputeCordClick(Sender: TObject);
@@ -119,35 +107,16 @@ var
   value: string;
 begin
   edCord.Text := NOTFOUND;
-
-  try
-  R := strtofloat(edRay.Text);
-  except on E: exception do
-    begin
-      edRay.Text := MUSTFLOATUSE;
-      exit;
-    end;
+  if (not getDoublePositiveNonNullValue(edRay.Text, R))
+  or (not getDoublePositiveNonNullValue(edArrow.Text, F))
+  then
+  begin
+    showMessage(MUSTPOSITIVEFLOATUSEORCHANGECOMMA);
+    exit;
   end;
-
-  try
-  F := strtofloat(edArrow.Text);
-  except on E: exception do
-    begin
-      edArrow.Text := MUSTFLOATUSE;
-      exit;
-    end;
-  end;
-
-  if R >= F then
-    begin
-      C := sqrt(4*F*(2*R-F));
-      try
-      value := floattostr(C);
-      except on E: exception do
-        value := NOTFOUND;
-      end;
-      edCord.Text := value;
-    end;
+  C := ComputeCord(F, R); // dll method
+  value := TransfoDoubleToStr(C);
+  edCord.Text := value;
 end;
 
 end.
